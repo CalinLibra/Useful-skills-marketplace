@@ -1,0 +1,12 @@
+{
+  "name": "team-skills-marketplace",
+  "description": "Shared Claude Code skills for our dev team",
+  "owner": { "name": "Calin Bantas" },
+  "plugins": [
+    {
+      "name": "team-skills",
+      "source": "./plugins/team-skills",
+      "description": "Commit message standard and repo onboarding"
+    }
+  ]
+}

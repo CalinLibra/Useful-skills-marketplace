@@ -1,0 +1,489 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>__REPO__ Onboarding</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.9.0/d3.min.js"></script>
+<style>
+:root{
+  color-scheme:light dark;
+  --bg:#f6f6f3;--surface:#ffffff;--text:#1c1c1a;--muted:#6a6a64;--border:#e2e1db;
+  --accent:#2f6fde;--accent-soft:#e6eefc;--warn-bg:#fff4d1;--warn-text:#5f4900;
+  --ok:#1d7f46;--inf:#a35f08;--code-bg:#f0efea;
+  --l-ui:#3b82c4;--l-service:#2f9e6e;--l-data:#c47a2c;--l-infra:#8a6fc4;--l-other:#9a9a92;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    color-scheme:dark;
+    --bg:#161614;--surface:#1f1f1c;--text:#ecebe6;--muted:#a3a29b;--border:#34332f;
+    --accent:#7aa7ff;--accent-soft:#22304a;--warn-bg:#3a3014;--warn-text:#f3dc9a;
+    --ok:#5fd193;--inf:#f0b45e;--code-bg:#2a2a26;
+    --l-ui:#6aa9e0;--l-service:#5cc496;--l-data:#e0a060;--l-infra:#ad97e6;--l-other:#7d7d76;
+  }
+}
+:root[data-theme="dark"]{
+  color-scheme:dark;
+  --bg:#161614;--surface:#1f1f1c;--text:#ecebe6;--muted:#a3a29b;--border:#34332f;
+  --accent:#7aa7ff;--accent-soft:#22304a;--warn-bg:#3a3014;--warn-text:#f3dc9a;
+  --ok:#5fd193;--inf:#f0b45e;--code-bg:#2a2a26;
+  --l-ui:#6aa9e0;--l-service:#5cc496;--l-data:#e0a060;--l-infra:#ad97e6;--l-other:#7d7d76;
+}
+:root[data-theme="light"]{color-scheme:light}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth;scroll-padding-top:72px}
+body{margin:0;background:var(--bg);color:var(--text);font:15px/1.55 system-ui,-apple-system,"Segoe UI",sans-serif}
+header{position:sticky;top:0;z-index:5;background:var(--surface);border-bottom:1px solid var(--border);
+  display:flex;flex-wrap:wrap;gap:8px 16px;align-items:center;padding:10px 16px}
+header h1{font-size:17px;margin:0}
+.meta{color:var(--muted);font-size:13px}
+.search{position:relative;flex:1 1 220px;max-width:420px;margin-left:auto}
+.search input{width:100%;padding:7px 10px;border:1px solid var(--border);border-radius:8px;background:var(--bg);color:var(--text);font:inherit}
+.results{position:absolute;left:0;right:0;top:calc(100% + 4px);background:var(--surface);border:1px solid var(--border);
+  border-radius:8px;list-style:none;margin:0;padding:4px;max-height:320px;overflow:auto;box-shadow:0 6px 24px rgba(0,0,0,.12)}
+.results li{padding:6px 8px;border-radius:6px;cursor:pointer}
+.results li:hover,.results li:focus{background:var(--accent-soft);outline:none}
+.results small{color:var(--muted);margin-left:6px}
+button{font:inherit;color:inherit;background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:5px 10px;cursor:pointer}
+button:hover{border-color:var(--accent)}
+button[aria-pressed="true"]{background:var(--accent-soft);border-color:var(--accent)}
+.banner{background:var(--warn-bg);color:var(--warn-text);padding:8px 16px;font-size:14px}
+.layout{display:grid;grid-template-columns:200px minmax(0,1fr);gap:24px;max-width:1200px;margin:0 auto;padding:16px}
+nav{position:sticky;top:72px;align-self:start}
+nav a{display:block;padding:6px 10px;border-radius:6px;color:var(--text);text-decoration:none}
+nav a:hover{background:var(--accent-soft)}
+nav a.core{font-weight:600}
+main{min-width:0}
+section{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:20px;margin-bottom:20px}
+section h2{margin:0 0 12px;font-size:20px}
+section.minor h2{font-size:17px}
+.na{color:var(--muted);font-style:italic}
+.badge{display:inline-block;font-size:11px;font-weight:600;padding:1px 6px;border-radius:999px;margin-left:6px;border:1px solid currentColor;vertical-align:middle;cursor:help}
+.badge.ok{color:var(--ok)}.badge.inf{color:var(--inf)}
+code,pre{font-family:ui-monospace,Consolas,monospace;font-size:13px;overflow-wrap:anywhere}
+.cmd code{overflow-wrap:normal}
+.cmd{display:flex;gap:8px;align-items:center;background:var(--code-bg);border-radius:8px;padding:6px 8px;margin-top:6px}
+.cmd code{flex:1;overflow-x:auto;white-space:pre}
+.warn{background:var(--warn-bg);color:var(--warn-text);border-radius:8px;padding:10px 12px;margin-top:12px}
+.warn ul{margin:4px 0 0;padding-left:20px}
+.map-toolbar{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin:12px 0 8px}
+.legend{display:flex;gap:10px;flex-wrap:wrap;font-size:12px;color:var(--muted);margin-left:auto}
+.legend i{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:4px;vertical-align:middle}
+#map{width:100%;height:auto;aspect-ratio:800/460;background:var(--bg);border:1px solid var(--border);border-radius:10px;touch-action:pan-y}
+#map .link{stroke:var(--muted);stroke-opacity:.45}
+#map .node circle{fill-opacity:.85;stroke:var(--surface);stroke-width:2;cursor:pointer}
+#map .node.selected circle{stroke:var(--text);stroke-width:3}
+#map .node text{font-size:11px;fill:var(--text);pointer-events:none;paint-order:stroke;stroke:var(--bg);stroke-width:3px}
+#map .row-label{font-size:12px;fill:var(--muted);text-transform:uppercase;letter-spacing:.06em}
+#detail{margin-top:14px;border-top:1px solid var(--border);padding-top:14px}
+#detail h3{margin:0 0 6px}
+.cols{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;margin-top:10px}
+.cols h4{margin:0 0 4px;font-size:13px;color:var(--muted);text-transform:uppercase;letter-spacing:.04em}
+.cols ul{margin:0;padding-left:18px}
+.link-btn{background:none;border:none;padding:0;color:var(--accent);cursor:pointer;text-align:left}
+.link-btn:hover{text-decoration:underline}
+ol.steps{padding-left:0;list-style:none;counter-reset:s}
+ol.steps li{counter-increment:s;padding:10px 0;border-bottom:1px solid var(--border)}
+ol.steps li:last-child{border-bottom:none}
+ol.steps label{display:flex;gap:8px;align-items:baseline;font-weight:600}
+ol.steps label::before{content:counter(s) ".";color:var(--muted);min-width:1.4em}
+ol.steps li.done label{text-decoration:line-through;color:var(--muted)}
+.notes{color:var(--muted);font-size:14px;margin:4px 0 0 2.4em}
+.progress{color:var(--muted);font-size:13px}
+.filter{width:100%;padding:7px 10px;border:1px solid var(--border);border-radius:8px;background:var(--bg);color:var(--text);font:inherit;margin-bottom:8px}
+.lookup li{list-style:none;padding:8px 0;border-bottom:1px solid var(--border)}
+.lookup ul{padding:0;margin:0}
+.lookup .task{font-weight:600}
+.chain{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin:6px 0 14px}
+.chip{border:1px solid var(--border);border-radius:999px;padding:2px 10px;font-size:13px;background:var(--bg);cursor:pointer}
+.chip:hover{border-color:var(--accent)}
+.arrow{color:var(--muted)}
+details{border-bottom:1px solid var(--border);padding:6px 0}
+summary{cursor:pointer;font-weight:600}
+dl.gloss dt{font-weight:600;margin-top:10px}
+dl.gloss dd{margin:2px 0 0 0;color:var(--text)}
+.flash{animation:flash 1.2s ease}
+@keyframes flash{0%{background:var(--accent-soft)}100%{background:transparent}}
+.error{max-width:640px;margin:40px auto;padding:20px;background:var(--warn-bg);color:var(--warn-text);border-radius:12px}
+@media (max-width:760px){
+  header{position:static}
+  .layout{grid-template-columns:minmax(0,1fr);padding:12px 16px}
+  nav{position:static;display:flex;flex-wrap:wrap;gap:4px}
+  nav a{padding:4px 8px;font-size:14px}
+  section{padding:16px}
+  .search{max-width:none;margin-left:0}
+}
+</style>
+</head>
+<body>
+<header>
+  <h1 id="title">Onboarding</h1>
+  <span class="meta" id="meta"></span>
+  <div class="search">
+    <input id="q" type="search" placeholder="Search subsystems, files, tasks, terms…" autocomplete="off" aria-label="Search">
+    <ul class="results" id="results" hidden></ul>
+  </div>
+  <button id="theme" title="Toggle light/dark" aria-label="Toggle light/dark theme">◐</button>
+</header>
+<div id="banner"></div>
+<div class="layout">
+  <nav aria-label="Sections">
+    <a class="core" href="#architecture">Architecture</a>
+    <a class="core" href="#run">Run it locally</a>
+    <a class="core" href="#where">Where things live</a>
+    <a href="#flows">Key flows</a>
+    <a href="#conventions">Conventions</a>
+    <a href="#glossary">Glossary</a>
+  </nav>
+  <main>
+    <section id="architecture"><h2>Architecture</h2>
+      <p id="summary"></p>
+      <div class="map-toolbar">
+        <button id="mode-bubble" aria-pressed="true">Bubble</button>
+        <button id="mode-layered" aria-pressed="false">Layered</button>
+        <div class="legend" id="legend"></div>
+      </div>
+      <div class="body" id="map-host"><svg id="map" role="group" aria-label="Subsystem map"></svg></div>
+      <div id="detail"><p class="na">Click a subsystem on the map to see details.</p></div>
+    </section>
+    <section id="run"><h2>Run it locally</h2><div class="body"></div></section>
+    <section id="where"><h2>Where things live</h2><div class="body"></div></section>
+    <section id="flows" class="minor"><h2>Key flows</h2><div class="body"></div></section>
+    <section id="conventions" class="minor"><h2>Conventions</h2><div class="body"></div></section>
+    <section id="glossary" class="minor"><h2>Glossary</h2><div class="body"></div></section>
+  </main>
+</div>
+<script>
+"use strict";
+const LAYERS = ["ui", "service", "data", "infra"];
+const LAYER_NAMES = { ui: "UI", service: "Services", data: "Data", infra: "Infra", other: "Unassigned" };
+let DATA = null, mapState = null, mapMode = "bubble";
+
+const store = {
+  get(k) { try { return JSON.parse(localStorage.getItem(k)); } catch (e) { return null; } },
+  set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) { /* storage blocked */ } }
+};
+
+function el(tag, attrs, ...kids) {
+  const e = document.createElement(tag);
+  for (const [k, v] of Object.entries(attrs || {})) {
+    if (v == null || v === false) continue;
+    if (k.startsWith("on")) e.addEventListener(k.slice(2), v);
+    else e.setAttribute(k, v === true ? "" : v);
+  }
+  for (const c of kids.flat(Infinity)) {
+    if (c == null || c === false) continue;
+    e.append(c instanceof Node ? c : String(c));
+  }
+  return e;
+}
+
+function badge(item) {
+  if (!item || !item.confidence) return null;
+  const ok = item.confidence === "verified";
+  return el("span", { class: "badge " + (ok ? "ok" : "inf"),
+    title: item.source ? "Source: " + item.source : "No source recorded" },
+    ok ? "✓ verified" : "~ inferred");
+}
+
+function na(host, msg) { host.replaceChildren(el("p", { class: "na" }, msg || "Not available")); }
+
+function section(host, fn) {
+  try { fn(host); }
+  catch (e) { console.error(e); na(host); }
+}
+
+function communities() { return (DATA.graph && Array.isArray(DATA.graph.communities)) ? DATA.graph.communities : []; }
+function commById(id) { return communities().find(c => c.id === id); }
+function archFor(id) { const a = DATA.architecture && DATA.architecture.communities; return (a && a[String(id)]) || {}; }
+function layerOf(id) { const l = archFor(id).layer; return LAYERS.includes(l) ? l : "other"; }
+
+function flashEl(node) { node.classList.remove("flash"); void node.offsetWidth; node.classList.add("flash"); }
+
+/* ---------- header ---------- */
+function renderHeader() {
+  const m = DATA.meta || {};
+  const repo = m.repo || "Repository";
+  document.getElementById("title").textContent = repo;
+  document.title = repo + " Onboarding";
+  const s = m.graphStats || {};
+  const bits = [m.commit ? "@ " + m.commit : null, m.generatedAt, m.scope && m.scope !== "." ? "scope: " + m.scope : null,
+    s.nodes != null ? `${s.nodes} nodes · ${s.communities} subsystems` : null].filter(Boolean);
+  document.getElementById("meta").textContent = bits.join(" · ");
+  if (m.graphStale) document.getElementById("banner").replaceChildren(
+    el("div", { class: "banner" }, "The knowledge graph was out of date when this page was generated, so recent changes may be missing."));
+}
+
+/* ---------- architecture ---------- */
+function renderSummary() {
+  const s = DATA.architecture && DATA.architecture.summary;
+  const p = document.getElementById("summary");
+  if (s) p.textContent = s; else p.replaceChildren(el("span", { class: "na" }, "No summary available."));
+}
+
+function renderLegend() {
+  document.getElementById("legend").replaceChildren(...[...LAYERS, "other"].map(l =>
+    el("span", {}, el("i", { style: `background:var(--l-${l})` }), LAYER_NAMES[l])));
+}
+
+function renderMap() {
+  if (typeof d3 === "undefined") throw new Error("D3 failed to load");
+  const W = 800, H = 460;
+  const nodes = communities().map(c => ({ ...c, layer: layerOf(c.id) }));
+  if (!nodes.length) throw new Error("no communities");
+  const ids = new Set(nodes.map(n => n.id));
+  const links = (DATA.graph.links || []).filter(l => ids.has(l.from) && ids.has(l.to))
+    .map(l => ({ source: l.from, target: l.to, weight: l.weight || 1 }));
+  const maxSize = d3.max(nodes, n => n.size || 1) || 1;
+  const maxW = d3.max(links, l => l.weight) || 1;
+  const r = n => 10 + 34 * Math.sqrt((n.size || 1) / maxSize);
+
+  const svg = d3.select("#map").attr("viewBox", `0 0 ${W} ${H}`);
+  svg.selectAll("*").remove();
+  const g = svg.append("g");
+  svg.call(d3.zoom().scaleExtent([0.4, 4]).on("zoom", e => g.attr("transform", e.transform)));
+  const rowsG = g.append("g");
+  const link = g.append("g").selectAll("line").data(links).join("line")
+    .attr("class", "link").attr("stroke-width", l => 1 + 6 * l.weight / maxW);
+  const node = g.append("g").selectAll("g").data(nodes).join("g")
+    .attr("class", "node").attr("tabindex", 0).attr("role", "button")
+    .attr("aria-label", d => d.label)
+    .on("click", (e, d) => selectCommunity(d.id, false))
+    .on("keydown", (e, d) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); selectCommunity(d.id, false); } });
+  node.append("circle").attr("r", r).attr("fill", d => `var(--l-${d.layer})`);
+  node.append("text").attr("text-anchor", "middle").attr("dy", d => r(d) + 13)
+    .text(d => d.label.length > 28 ? d.label.slice(0, 27) + "…" : d.label);
+  node.append("title").text(d => `${d.label} · ${d.size} nodes`);
+
+  const sim = d3.forceSimulation(nodes)
+    .force("link", d3.forceLink(links).id(d => d.id).distance(130).strength(l => 0.05 + 0.3 * l.weight / maxW))
+    .force("charge", d3.forceManyBody().strength(-260))
+    .force("collide", d3.forceCollide(d => r(d) + 14))
+    .on("tick", () => {
+      link.attr("x1", l => l.source.x).attr("y1", l => l.source.y).attr("x2", l => l.target.x).attr("y2", l => l.target.y);
+      node.attr("transform", d => `translate(${d.x},${d.y})`);
+    });
+  node.call(d3.drag()
+    .on("start", (e, d) => { if (!e.active) sim.alphaTarget(0.3).restart(); d.fx = d.x; d.fy = d.y; })
+    .on("drag", (e, d) => { d.fx = e.x; d.fy = e.y; })
+    .on("end", (e, d) => { if (!e.active) sim.alphaTarget(0); d.fx = null; d.fy = null; }));
+
+  mapState = { sim, node, rowsG, W, H };
+  setMapMode(store.get("onb:mapMode") || "bubble");
+}
+
+function setMapMode(mode) {
+  mapMode = mode === "layered" ? "layered" : "bubble";
+  store.set("onb:mapMode", mapMode);
+  document.getElementById("mode-bubble").setAttribute("aria-pressed", mapMode === "bubble");
+  document.getElementById("mode-layered").setAttribute("aria-pressed", mapMode === "layered");
+  if (!mapState) return;
+  const { sim, rowsG, W, H } = mapState;
+  const rows = [...LAYERS, "other"];
+  const rowY = l => H * (0.1 + 0.2 * rows.indexOf(l));
+  rowsG.selectAll("*").remove();
+  if (mapMode === "layered") {
+    rowsG.selectAll("text").data(rows).join("text").attr("class", "row-label")
+      .attr("x", 10).attr("y", l => rowY(l) - 26).text(l => LAYER_NAMES[l]);
+    sim.force("x", d3.forceX(W / 2).strength(0.03)).force("y", d3.forceY(d => rowY(d.layer)).strength(0.7));
+  } else {
+    sim.force("x", d3.forceX(W / 2).strength(0.06)).force("y", d3.forceY(H / 2).strength(0.06));
+  }
+  sim.alpha(0.9).restart();
+}
+
+function selectCommunity(id, scroll) {
+  const c = commById(id);
+  if (!c) return;
+  if (mapState) mapState.node.classed("selected", d => d.id === id);
+  const detail = document.getElementById("detail");
+  section(detail, host => {
+    const a = archFor(id);
+    const talks = (DATA.graph.links || [])
+      .filter(l => l.from === id || l.to === id)
+      .map(l => ({ other: commById(l.from === id ? l.to : l.from), w: l.weight }))
+      .filter(t => t.other).sort((x, y) => y.w - x.w);
+    host.replaceChildren(
+      el("h3", {}, c.label, badge(a)),
+      el("p", {}, a.description || el("span", { class: "na" }, "No description.")),
+      el("p", { class: "meta" }, `${c.size} nodes · layer: ${LAYER_NAMES[layerOf(id)]} (inferred)` +
+        (c.cohesion != null ? ` · cohesion ${c.cohesion}` : "")),
+      el("div", { class: "cols" },
+        el("div", {}, el("h4", {}, "Start here"),
+          (a.entryPoints && a.entryPoints.length) ? el("ul", {}, a.entryPoints.map(p => el("li", {}, el("code", {}, p)))) : el("p", { class: "na" }, "—")),
+        el("div", {}, el("h4", {}, "Top files"),
+          (c.topFiles && c.topFiles.length) ? el("ul", {}, c.topFiles.map(p => el("li", {}, el("code", {}, p)))) : el("p", { class: "na" }, "—")),
+        el("div", {}, el("h4", {}, "Talks to"),
+          talks.length ? el("ul", {}, talks.map(t => el("li", {},
+            el("button", { class: "link-btn", onclick: () => selectCommunity(t.other.id, false) }, t.other.label),
+            ` (${t.w})`))) : el("p", { class: "na" }, "—"))));
+  });
+  if (scroll) { document.getElementById("architecture").scrollIntoView(); flashEl(detail); }
+}
+
+/* ---------- run locally ---------- */
+function renderRun(host) {
+  const r = DATA.runLocally;
+  if (!r || typeof r !== "object") throw new Error("runLocally missing");
+  const prereq = Array.isArray(r.prerequisites) ? r.prerequisites : [];
+  if (!Array.isArray(r.steps)) throw new Error("steps malformed");
+  const key = "onb:run:" + ((DATA.meta && DATA.meta.repo) || "repo");
+  const done = store.get(key) || {};
+  const progress = el("span", { class: "progress" });
+  const keys = r.steps.map(s => (s.title || "") + "\u0000" + (s.command || ""));
+  const update = () => { progress.textContent = `${keys.filter(k => done[k]).length} / ${r.steps.length} done`; };
+  const kids = [];
+  if (prereq.length) kids.push(el("h3", {}, "Prerequisites"),
+    el("ul", {}, prereq.map(p => el("li", {}, p.name, badge(p)))));
+  kids.push(el("h3", {}, "Steps ", progress));
+  kids.push(el("ol", { class: "steps" }, r.steps.map((s, i) => {
+    const li = el("li", { class: done[keys[i]] ? "done" : null });
+    const cb = el("input", { type: "checkbox", id: "step" + i, checked: !!done[keys[i]],
+      onchange: e => { done[keys[i]] = e.target.checked; li.classList.toggle("done", e.target.checked); store.set(key, done); update(); } });
+    li.append(el("label", { for: "step" + i }, cb, el("span", {}, s.title || "Step"), badge(s)));
+    if (s.command) {
+      const btn = el("button", { title: "Copy command" }, "Copy");
+      btn.addEventListener("click", async () => {
+        try { await navigator.clipboard.writeText(s.command); btn.textContent = "Copied"; }
+        catch (e) { btn.textContent = "Select & copy"; }
+        setTimeout(() => { btn.textContent = "Copy"; }, 1500);
+      });
+      li.append(el("div", { class: "cmd" }, el("code", {}, s.command), btn));
+    }
+    if (s.notes) li.append(el("p", { class: "notes" }, s.notes));
+    return li;
+  })));
+  const unknowns = Array.isArray(r.unknowns) ? r.unknowns : [];
+  if (unknowns.length) kids.push(el("div", { class: "warn" }, el("strong", {}, "Not found in the repo — ask the team:"),
+    el("ul", {}, unknowns.map(u => el("li", {}, u)))));
+  host.replaceChildren(...kids);
+  update();
+}
+
+/* ---------- where things live ---------- */
+function renderWhere(host) {
+  const items = DATA.whereThingsLive;
+  if (!Array.isArray(items)) throw new Error("whereThingsLive malformed");
+  if (!items.length) return na(host, "Nothing recorded for this repo.");
+  const list = el("ul");
+  const rows = items.map(it => {
+    const c = commById(it.community);
+    const li = el("li", {},
+      el("div", { class: "task" }, it.task || "—", badge(it)),
+      el("div", {}, "Look in: ", (it.look || []).map((p, i) => [i ? ", " : "", el("code", {}, p)])),
+      c ? el("button", { class: "link-btn", onclick: () => selectCommunity(c.id, true) }, "Show " + c.label + " on the map") : null);
+    li.dataset.text = [it.task, ...(it.look || []), c ? c.label : ""].join(" ").toLowerCase();
+    return li;
+  });
+  list.append(...rows);
+  const filter = el("input", { class: "filter", type: "search", placeholder: "Filter: I need to…", "aria-label": "Filter tasks",
+    oninput: e => { const q = e.target.value.toLowerCase(); rows.forEach(li => { li.hidden = q && !li.dataset.text.includes(q); }); } });
+  host.replaceChildren(filter, el("div", { class: "lookup" }, list));
+}
+
+/* ---------- flows / conventions / glossary ---------- */
+function renderFlows(host) {
+  const flows = DATA.flows;
+  if (!Array.isArray(flows)) throw new Error("flows malformed");
+  if (!flows.length) return na(host, "No flows recorded.");
+  host.replaceChildren(...flows.map(f => el("details", { open: true },
+    el("summary", {}, f.name || "Flow", badge(f)),
+    el("div", { class: "chain" }, (f.steps || []).map((s, i) => [
+      i ? el("span", { class: "arrow" }, "→") : null,
+      el("button", { class: "chip", title: s.file || "", onclick: () => selectCommunity(s.community, true) }, s.node || "?")
+    ])))));
+}
+
+function renderConventions(host) {
+  const items = DATA.conventions;
+  if (!Array.isArray(items)) throw new Error("conventions malformed");
+  if (!items.length) return na(host, "No conventions recorded.");
+  host.replaceChildren(el("ul", {}, items.map(c => el("li", {}, el("strong", {}, c.title || ""), badge(c), c.text ? " — " + c.text : ""))));
+}
+
+function renderGlossary(host) {
+  const items = DATA.glossary;
+  if (!Array.isArray(items)) throw new Error("glossary malformed");
+  if (!items.length) return na(host, "No terms recorded.");
+  const sorted = [...items].filter(g => g && g.term).sort((a, b) => a.term.localeCompare(b.term));
+  host.replaceChildren(el("dl", { class: "gloss" }, sorted.map((g, i) => [
+    el("dt", { id: "term-" + i }, g.term, badge(g)),
+    el("dd", {}, g.definition || el("span", { class: "na" }, "No definition."))])));
+  sorted.forEach((g, i) => { g._anchor = "term-" + i; });
+}
+
+/* ---------- search ---------- */
+function buildIndex() {
+  const idx = [];
+  communities().forEach(c => {
+    idx.push({ label: c.label, kind: "subsystem", go: () => selectCommunity(c.id, true) });
+    (c.topFiles || []).forEach(f => idx.push({ label: f, kind: "file · " + c.label, go: () => selectCommunity(c.id, true) }));
+  });
+  (Array.isArray(DATA.whereThingsLive) ? DATA.whereThingsLive : []).forEach(it => idx.push({ label: it.task || "", kind: "task",
+    go: () => { if (commById(it.community)) selectCommunity(it.community, true); else document.getElementById("where").scrollIntoView(); } }));
+  (Array.isArray(DATA.glossary) ? DATA.glossary : []).forEach(g => { if (g && g.term) idx.push({ label: g.term, kind: "term",
+    go: () => { const t = g._anchor && document.getElementById(g._anchor); (t || document.getElementById("glossary")).scrollIntoView(); if (t) flashEl(t); } }); });
+  return idx;
+}
+
+function wireSearch(idx) {
+  const q = document.getElementById("q"), res = document.getElementById("results");
+  const close = () => { res.hidden = true; };
+  q.addEventListener("input", () => {
+    const s = q.value.trim().toLowerCase();
+    if (!s) return close();
+    const hits = idx.filter(i => i.label.toLowerCase().includes(s)).slice(0, 12);
+    res.replaceChildren(...(hits.length ? hits.map(h => el("li", { tabindex: 0,
+      onclick: () => { close(); h.go(); },
+      onkeydown: e => { if (e.key === "Enter") { close(); h.go(); } } }, h.label, el("small", {}, h.kind)))
+      : [el("li", { class: "na" }, "No matches")]));
+    res.hidden = false;
+  });
+  q.addEventListener("keydown", e => { if (e.key === "Escape") { close(); q.blur(); } });
+  document.addEventListener("click", e => { if (!e.target.closest(".search")) close(); });
+}
+
+/* ---------- theme ---------- */
+function wireTheme() {
+  const saved = store.get("onb:theme");
+  if (saved) document.documentElement.dataset.theme = saved;
+  document.getElementById("theme").addEventListener("click", () => {
+    const cur = document.documentElement.dataset.theme ||
+      (matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
+    const next = cur === "dark" ? "light" : "dark";
+    document.documentElement.dataset.theme = next;
+    store.set("onb:theme", next);
+  });
+}
+
+/* ---------- boot ---------- */
+async function boot() {
+  wireTheme();
+  try {
+    const resp = await fetch("data.json", { cache: "no-store" });
+    if (!resp.ok) throw new Error("HTTP " + resp.status);
+    DATA = await resp.json();
+    if (!DATA || typeof DATA !== "object") throw new Error("not an object");
+  } catch (e) {
+    document.querySelector(".layout").replaceChildren(el("div", { class: "error" },
+      el("h2", {}, "Could not load onboarding data"),
+      el("p", {}, "data.json is missing or invalid (" + e.message + "). Re-run /onboarding-the-repo to regenerate this page.")));
+    return;
+  }
+  try { renderHeader(); } catch (e) { console.error(e); }
+  section(document.getElementById("summary"), renderSummary);
+  try { renderLegend(); } catch (e) { console.error(e); }
+  document.getElementById("mode-bubble").addEventListener("click", () => setMapMode("bubble"));
+  document.getElementById("mode-layered").addEventListener("click", () => setMapMode("layered"));
+  section(document.getElementById("map-host"), renderMap);
+  section(document.querySelector("#run .body"), renderRun);
+  section(document.querySelector("#where .body"), renderWhere);
+  section(document.querySelector("#flows .body"), renderFlows);
+  section(document.querySelector("#conventions .body"), renderConventions);
+  section(document.querySelector("#glossary .body"), renderGlossary);
+  try { wireSearch(buildIndex()); } catch (e) { console.error(e); }
+}
+boot();
+</script>
+</body>
+</html>

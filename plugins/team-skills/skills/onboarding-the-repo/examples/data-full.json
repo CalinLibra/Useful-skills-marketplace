@@ -1,0 +1,86 @@
+{
+  "meta": {
+    "repo": "payments-api", "commit": "a1b2c3d", "generatedAt": "2026-10-12",
+    "scope": ".", "graphStale": false,
+    "graphStats": { "nodes": 1840, "edges": 5210, "communities": 6 }
+  },
+  "graph": {
+    "communities": [
+      { "id": 0, "label": "Payments Core", "cohesion": 0.62, "size": 140,
+        "topFiles": ["src/payments/service.ts", "src/payments/routes.ts", "src/payments/validators.ts"] },
+      { "id": 1, "label": "Auth & Sessions", "cohesion": 0.71, "size": 86,
+        "topFiles": ["src/auth/service.ts", "src/auth/session.ts", "src/auth/routes.ts"] },
+      { "id": 2, "label": "Ledger Persistence", "cohesion": 0.55, "size": 74,
+        "topFiles": ["src/ledger/repository.ts", "src/ledger/entry.ts", "migrations/"] },
+      { "id": 3, "label": "Web UI", "cohesion": 0.48, "size": 120,
+        "topFiles": ["web/src/App.tsx", "web/src/pages/Checkout.tsx", "web/src/api/client.ts"] },
+      { "id": 4, "label": "Notifications", "cohesion": 0.66, "size": 32,
+        "topFiles": ["src/notify/mailer.ts", "src/notify/templates/"] },
+      { "id": 5, "label": "Infra & Config", "cohesion": 0.39, "size": 28,
+        "topFiles": ["src/config.ts", "docker-compose.yml", "src/db/pool.ts"] }
+    ],
+    "links": [
+      { "from": 0, "to": 2, "weight": 48 }, { "from": 0, "to": 1, "weight": 31 },
+      { "from": 3, "to": 0, "weight": 27 }, { "from": 3, "to": 1, "weight": 15 },
+      { "from": 0, "to": 4, "weight": 9 },  { "from": 2, "to": 5, "weight": 7 },
+      { "from": 1, "to": 5, "weight": 4 }
+    ],
+    "godNodes": [
+      { "id": "PaymentService", "label": "PaymentService", "file": "src/payments/service.ts", "community": 0, "degree": 97 },
+      { "id": "AuthService", "label": "AuthService", "file": "src/auth/service.ts", "community": 1, "degree": 64 },
+      { "id": "LedgerRepository", "label": "LedgerRepository", "file": "src/ledger/repository.ts", "community": 2, "degree": 51 }
+    ]
+  },
+  "architecture": {
+    "summary": "payments-api takes card payments from the web checkout, authorizes them with the PSP and records every money movement in an append-only ledger. A React front end talks to a Node/Express API. Payments Core orchestrates each payment, Auth guards every route, and Ledger Persistence owns the Postgres schema.",
+    "communities": {
+      "0": { "description": "Orchestrates a payment from request validation through PSP authorization to ledger write.", "entryPoints": ["src/payments/routes.ts", "src/payments/service.ts"], "layer": "service", "source": "graph", "confidence": "verified" },
+      "1": { "description": "Login, session cookies and the route guard middleware.", "entryPoints": ["src/auth/routes.ts"], "layer": "service", "source": "graph", "confidence": "verified" },
+      "2": { "description": "Postgres access for ledger entries plus SQL migrations.", "entryPoints": ["src/ledger/repository.ts"], "layer": "data", "source": "graph", "confidence": "verified" },
+      "3": { "description": "React checkout and account pages; calls the API through one client module.", "entryPoints": ["web/src/App.tsx"], "layer": "ui", "source": "graph", "confidence": "verified" },
+      "4": { "description": "Sends receipt and failure emails from templates.", "entryPoints": ["src/notify/mailer.ts"], "layer": "service", "source": "graph", "confidence": "inferred" },
+      "5": { "description": "Environment config, DB pool and container setup.", "entryPoints": ["src/config.ts"], "layer": "infra", "source": "graph", "confidence": "inferred" }
+    }
+  },
+  "runLocally": {
+    "prerequisites": [
+      { "name": "Node 20", "source": ".nvmrc", "confidence": "verified" },
+      { "name": "Docker Desktop (for Postgres)", "source": "docker-compose.yml", "confidence": "verified" }
+    ],
+    "steps": [
+      { "title": "Install dependencies", "command": "npm ci", "notes": "", "source": "README.md", "confidence": "verified" },
+      { "title": "Create your env file", "command": "cp .env.example .env", "notes": "Ask the team for the PSP sandbox key.", "source": "README.md", "confidence": "verified" },
+      { "title": "Start Postgres", "command": "docker compose up -d db", "notes": "", "source": "docker-compose.yml", "confidence": "verified" },
+      { "title": "Run migrations", "command": "npm run migrate", "notes": "", "source": "package.json", "confidence": "verified" },
+      { "title": "Start API and web", "command": "npm run dev", "notes": "API on :3000, web on :5173.", "source": "package.json", "confidence": "inferred" }
+    ],
+    "unknowns": ["Where the PSP sandbox key is stored is not documented."]
+  },
+  "whereThingsLive": [
+    { "task": "Add a new API endpoint", "look": ["src/payments/routes.ts", "src/payments/validators.ts"], "community": 0, "source": "graph", "confidence": "inferred" },
+    { "task": "Change the checkout page", "look": ["web/src/pages/Checkout.tsx"], "community": 3, "source": "graph", "confidence": "verified" },
+    { "task": "Add a DB migration", "look": ["migrations/"], "community": 2, "source": "package.json", "confidence": "verified" },
+    { "task": "Change a receipt email", "look": ["src/notify/templates/"], "community": 4, "source": "graph", "confidence": "verified" },
+    { "task": "Add a config / env variable", "look": ["src/config.ts", ".env.example"], "community": 5, "source": "graph", "confidence": "verified" }
+  ],
+  "flows": [
+    { "name": "Card payment", "steps": [
+        { "node": "Checkout", "file": "web/src/pages/Checkout.tsx", "community": 3 },
+        { "node": "paymentsRouter", "file": "src/payments/routes.ts", "community": 0 },
+        { "node": "PaymentService", "file": "src/payments/service.ts", "community": 0 },
+        { "node": "LedgerRepository", "file": "src/ledger/repository.ts", "community": 2 } ],
+      "source": "graphify path", "confidence": "inferred" },
+    { "name": "Login", "steps": [
+        { "node": "LoginPage", "file": "web/src/pages/Login.tsx", "community": 3 },
+        { "node": "AuthService", "file": "src/auth/service.ts", "community": 1 } ],
+      "source": "graphify path", "confidence": "inferred" }
+  ],
+  "conventions": [
+    { "title": "Commit messages", "text": "Conventional Commits, header max 50 chars; use /writing-commit-messages.", "source": "team", "confidence": "verified" },
+    { "title": "Formatting", "text": "Prettier runs on commit via lint-staged.", "source": "package.json", "confidence": "verified" }
+  ],
+  "glossary": [
+    { "term": "PSP", "definition": "Payment service provider; the external card processor.", "source": "README.md", "confidence": "verified" },
+    { "term": "Ledger entry", "definition": "One immutable debit or credit row.", "source": "src/ledger/entry.ts", "confidence": "verified" }
+  ]
+}

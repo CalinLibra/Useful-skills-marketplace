@@ -1,0 +1,18 @@
+{
+  "meta": { "repo": "broken-<b>repo</b>", "commit": null, "generatedAt": "2026-10-12",
+            "scope": "src", "graphStale": true,
+            "graphStats": { "nodes": 10, "edges": 9, "communities": 2 } },
+  "graph": {
+    "communities": [
+      { "id": 0, "label": "List<T> helpers <script>alert(1)</script>", "cohesion": null, "size": 6, "topFiles": ["src/util/List<T>.cs"] },
+      { "id": 1, "label": "Second", "cohesion": 0.3, "size": 4, "topFiles": [] }
+    ],
+    "links": [ { "from": 0, "to": 1, "weight": 3 }, { "from": 0, "to": 99, "weight": 5 } ],
+    "godNodes": []
+  },
+  "runLocally": { "prerequisites": [], "steps": "npm start", "unknowns": ["Everything"] },
+  "whereThingsLive": [ { "task": "<img src=x onerror=alert(2)>", "look": ["src/"], "community": 42, "source": "graph", "confidence": "maybe" } ],
+  "flows": null,
+  "conventions": [],
+  "glossary": [ { "term": "Thing" } ]
+}
