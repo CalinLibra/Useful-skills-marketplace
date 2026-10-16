@@ -4,9 +4,18 @@ Shared Claude Code skills for our dev team, distributed as a plugin marketplace.
 
 ## Plugins
 
-| Plugin | Skills |
+| Plugin | Contents |
 |---|---|
-| `team-skills` | `/team-skills:writing-commit-messages` — Conventional Commit standard with a header checker<br>`/team-skills:onboarding-the-repo` — interactive onboarding page for a repo, built from a [graphify](https://github.com/safishamsi/graphify) knowledge graph |
+| `team-skills` | `/team-skills:ship` — team pipeline: plan with you → code + tests per task → one review → one fix round → final checks → commit<br>`/team-skills:writing-commit-messages` — Conventional Commit standard with a header checker<br>`/team-skills:onboarding-the-repo` — interactive onboarding page for a repo, built from a [graphify](https://github.com/safishamsi/graphify) knowledge graph<br>Workflow `/team-skills:implement-plan` — the multi-agent part of `ship` (coder, reviewer, tester) |
+
+## The ship pipeline
+
+1. **Profile** — on first run in a repo it writes `.claude/pipeline.json` (stack, test/lint/build commands, conventions) from the project's own files. Commit it and edit it to tune the pipeline for that project.
+2. **Plan** — a short task list in chat; nothing runs until you approve.
+3. **Implement** — the `implement-plan` workflow: one coder per task (writes code and tests, runs the tests), then one reviewer over the whole change, one fix round for critical/important findings, and a final test/lint/build run.
+4. **Commit** — only the files the run changed, with a message from `writing-commit-messages`. On `main`/`master`/`develop` it first creates a `feat/…` or `fix/…` branch. It never pushes.
+
+If any step fails, it stops before committing and tells you why.
 
 ## Install
 
@@ -59,6 +68,11 @@ Commit this to a project's `.claude/settings.json`. Teammates who open the proje
 plugins/team-skills/
   .claude-plugin/plugin.json
   skills/
+    ship/
     writing-commit-messages/
     onboarding-the-repo/
+  workflows/
+    implement-plan.js
 ```
+
+Workflows go in `plugins/team-skills/workflows/<name>.js` and run as `/team-skills:<name>`.

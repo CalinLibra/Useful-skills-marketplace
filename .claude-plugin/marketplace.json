@@ -6,7 +6,7 @@
     {
       "name": "team-skills",
       "source": "./plugins/team-skills",
-      "description": "Commit message standard and repo onboarding"
+      "description": "Team pipeline (ship), commit message standard and repo onboarding"
     }
   ]
 }
