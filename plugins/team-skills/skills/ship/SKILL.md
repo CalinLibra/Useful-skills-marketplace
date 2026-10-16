@@ -21,7 +21,9 @@ shown when the skill loads.
   never commits these; if there are any, tell the user they will be left out.
 - If the current branch is `main`, `master`, `develop` or the remote's default
   branch, create a new branch before any change: `feat/<short-slug>` (or
-  `fix/<short-slug>` for a bug fix) and say so.
+  `fix/<short-slug>` for a bug fix) and say so. If the user gave a task key
+  (e.g. `DSH-12`), put it in the name: `feat/DSH-12-<short-slug>`; the commit
+  skill reads the key from there.
 
 ## 2. Project profile
 
@@ -82,13 +84,14 @@ When it returns, check `status`:
 ## 5. Commit
 
 1. Load the `team-skills:writing-commit-messages` skill (or
-   `writing-commit-messages` if that is how it is installed) and follow it for
-   the message, including its header check.
-2. Stage only the files this run changed: the paths in `git status
-   --porcelain` that are not in `PRE_EXISTING`. Never use `git add -A` or
-   `git add .`. Never stage secrets (`.env`, keys, credentials); if one shows
-   up, stop and tell the user.
-3. The body summarizes the tasks in a few lines. Commit. **Do not push.**
+   `writing-commit-messages` if that is how it is installed) and follow it
+   exactly: its message format, its message check and its commit command. The
+   whole approved plan is one piece of work, so it is one commit.
+2. Before committing, stage only the files this run changed: the paths in
+   `git status --porcelain` that are not in `PRE_EXISTING`. Never use
+   `git add -A` or `git add .`. Never stage secrets (`.env`, keys,
+   credentials); if one shows up, stop and tell the user.
+3. Commit as that skill says. **Do not push.**
 
 ## 6. Report
 

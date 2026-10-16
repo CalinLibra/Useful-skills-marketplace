@@ -6,7 +6,7 @@ Shared Claude Code skills for our dev team, distributed as a plugin marketplace.
 
 | Plugin | Contents |
 |---|---|
-| `team-skills` | `/team-skills:ship` — team pipeline: plan with you → code + tests per task → one review → one fix round → final checks → commit<br>`/team-skills:writing-commit-messages` — Conventional Commit standard with a header checker<br>`/team-skills:onboarding-the-repo` — interactive onboarding page for a repo, built from a [graphify](https://github.com/safishamsi/graphify) knowledge graph<br>Workflow `/team-skills:implement-plan` — the multi-agent part of `ship` (coder, reviewer, tester) |
+| `team-skills` | `/team-skills:ship` — team pipeline: plan with you → code + tests per task → one review → one fix round → final checks → commit<br>`/team-skills:writing-commit-messages` — commits as ready-to-file tasks: Romanian title + description, optional `Item:` key, with a message checker<br>`/team-skills:onboarding-the-repo` — interactive onboarding page for a repo, built from a [graphify](https://github.com/safishamsi/graphify) knowledge graph<br>Workflow `/team-skills:implement-plan` — the multi-agent part of `ship` (coder, reviewer, tester) |
 
 ## The ship pipeline
 
@@ -35,7 +35,7 @@ Then start a new session (or run `/reload-plugins`).
 ### Requirements
 
 - `onboarding-the-repo` needs the `graphify` skill installed and Python 3.
-- `writing-commit-messages` uses `bash` (Git Bash on Windows) for its header check.
+- `writing-commit-messages` uses `bash` (Git Bash on Windows) for its message check.
 
 ### Auto-enable in a project
 
